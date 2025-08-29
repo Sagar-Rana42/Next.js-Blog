@@ -29,7 +29,7 @@ model User{
 model Articles{
   id String @id @default(cuid())
   title String 
-  Content String
+  content String
   category String
   featuredImage String
   author User @relation(fields: [authorId] , references: [id] )

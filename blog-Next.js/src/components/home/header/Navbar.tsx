@@ -125,18 +125,19 @@ const Navbar = () => {
 
             {/* Mobile Auth Buttons */}
 
-            {/* <SignedOut> */}
+            <SignedOut>
               <div className="px-4 flex flex-col gap-2">
-                {/* <SignInButton> */}
+                <SignInButton>
                   <Button variant="outline" className="w-full">
                     Login
                   </Button>
-                {/* </SignInButton> */}
-                {/* <SignUpButton> */}
+                </SignInButton>
+
+                <SignUpButton>
                   <Button className="w-full">Sign up</Button>
-                {/* </SignUpButton> */}
+                </SignUpButton>
               </div>
-            {/* </SignedOut> */}
+            </SignedOut>
           </div>
         )}
     </div>

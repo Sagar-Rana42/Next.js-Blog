@@ -4,8 +4,25 @@ import { Button } from '../ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
 import { Badge } from '../ui/badge'
 import Link from 'next/link'
+import { Prisma } from '@prisma/client'
 
-const RecentArticles = () => {
+
+type RecentArticlesProps = {
+    articles:Prisma.ArticlesGetPayload<{
+        include:{
+            comment:true,
+            author:{
+                select:{
+                    name:true,
+                    email:true,
+                    imageUrl:true,
+                };
+            };
+        };
+    }>[]
+};
+
+const RecentArticles:React.FC<RecentArticlesProps> = ({articles}) => {
   return (
    <Card className='mb-8'>
      <CardHeader>
