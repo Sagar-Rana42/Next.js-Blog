@@ -35,7 +35,7 @@ type articleFormState = {
     };
 }
 
-export const createArticle = async(prevState : articleFormState , formData : FormData) : Promise<articleFormState> =>{
+export const editArticle = async(articleId : string , prevState : articleFormState , formData : FormData) : Promise<articleFormState> =>{
     // console.log("incomming call for create articles");
     // console.log("formData = " , formData);
 
@@ -64,12 +64,35 @@ export const createArticle = async(prevState : articleFormState , formData : For
         };
     }
 
+    if(!userId){
+        return{
+            errors:{
+                formErrors:['User not found , please login']
+            }
+        }
+    }
+
+    const editArticle = await prisma.articles.findUnique({
+        where:{
+            id:articleId
+        }
+    })
+    if(!editArticle){
+        return{
+            errors:{
+                formErrors:['Article not found ']
+            }
+        }
+    }
+    
+
     const existingUser = await prisma.user.findUnique({
         where:{
             clerkUserId:userId
         }
     })
     // console.log("existring user = " , existingUser);
+    
 
     if(!existingUser){
         return{
@@ -78,44 +101,65 @@ export const createArticle = async(prevState : articleFormState , formData : For
             }
         }
     }
+    if (!existingUser || editArticle.authorId !== existingUser.id) {
+        return {
+            errors: { formErrors: ["You are not authorized to edit this article."] },
+        };
+    }
 
-    const imageFile = formData.get('featuredImage') as File | null
-    // console.log("image file = " , imageFile);
-    if(!imageFile || imageFile.name === "undefined"){
-        return{
-            errors:{
-                featuredImage:['Image file is required']
+    let imageUrl = editArticle!.featuredImage; // Default to the existing image
+
+    //  Check if a new image is provided or not 
+
+    const imageFile = formData.get("featuredImage") as File | null;
+    if (imageFile && imageFile.name !== "undefined") {
+        try {
+            const arrayBuffer = await imageFile.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            const uploadResult: UploadApiResponse | undefined = await new Promise(
+                (resolve, reject) => {
+                    const uploadStream = cloudinary.uploader.upload_stream(
+                        { resource_type: "image" },
+                        (error, result) => {
+                            if (error) {
+                                reject(error);
+                            } else {
+                                resolve(result);
+                            }
+                        }
+                    );
+                    uploadStream.end(buffer);
+                }
+            );
+
+            if (uploadResult?.secure_url) {
+                imageUrl = uploadResult.secure_url;
+            } else {
+                return {
+                    errors: { featuredImage: ["Failed to upload image. Please try again."] },
+                };
+            }
+        } catch (error) {
+            if(error instanceof Error){
+                return {
+                    errors:{
+                        formErrors:[error.message]
+                    }
+                }
+            }else{
+                return {
+                    errors: { formErrors: ["Error uploading image. Please try again."] },
+                };
             }
         }
     }
-    const arrayBuffer = await imageFile.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
 
-    const uploadResponse : UploadApiResponse | undefined = await new Promise((resolve, reject)=>{
-        const uploadStream = cloudinary.uploader.upload_stream(
-           { resource_type:'auto'},
-           (error , result)=>{
-                if(error){
-                    reject(error)
-                }
-                else{
-                    resolve(result)
-                }
-           }
-        )
-        uploadStream.end(buffer);
-    })
-
-    const imageUrl = uploadResponse?.secure_url;
-    if(!imageUrl){
-        return{
-            errors:{
-                featuredImage:['failed to upload image. please try again']
-            }
-        }
-    }
     try {
-      await  prisma.articles.create({
+      await  prisma.articles.update({
+        where:{
+            id:articleId,
+        },
         data:{
             title:result.data.title,
             category:result.data.category,
@@ -123,10 +167,10 @@ export const createArticle = async(prevState : articleFormState , formData : For
             featuredImage:imageUrl,
             authorId:existingUser.id
         }
-       })
-       console.log("created successfully ")
+       });
+    //    console.log("updated  successfully ")
     } catch (error : unknown) {
-         console.log("not successfully ")
+        //  console.log("not successfully ")
         if(error instanceof Error){
             return{
                 errors:{
@@ -142,7 +186,7 @@ export const createArticle = async(prevState : articleFormState , formData : For
         }
     }
 
-    revalidatePath('dashboard')
+    revalidatePath('/dashboard')
     redirect("/dashboard")
 
 

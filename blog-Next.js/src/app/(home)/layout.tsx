@@ -4,7 +4,7 @@ import { currentUser } from "@clerk/nextjs/server";
 
 const layout = async ({ children }: { children: React.ReactNode }) => {
   const user = await currentUser(); // this is the Clerk user object, it has id, emailAddresses, fullName, etc.
-  console.log("current user  = " , user);
+  // console.log("current user  = " , user);
 
   if (!user) {
     return <div>{children}</div>; // or we can redirect("/sign-in")
@@ -14,7 +14,7 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
   const loggedInUser = await prisma.user.findUnique({
     where: { clerkUserId: user.id },
   });
-  console.log("logged in user = " , loggedInUser);
+  // console.log("logged in user = " , loggedInUser);
 
   if (!loggedInUser) {
     await prisma.user.create({
@@ -29,7 +29,7 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
 
   return(
     <div>
-      <Navbar/>
+      {/* <Navbar/> */}
       {children}
     </div>
   )

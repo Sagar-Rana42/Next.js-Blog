@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
       },{
         protocol:'https',
         hostname:"blog.https://www.chitkara.edu.in",
+      },{
+        protocol:'https',
+        hostname:"res.cloudinary.com"
       }
     ]
   }

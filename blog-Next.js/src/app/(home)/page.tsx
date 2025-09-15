@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import BlogFooter from "@/components/home/BlogFooter";
+import { Suspense } from "react";
 
 export default function Home() {
   return (
@@ -20,8 +21,11 @@ export default function Home() {
             <p className="">Discover our most popular and trending content</p>
             
           </div>
-  
+          <Suspense fallback={<h1>Loading...</h1>}>
+
           <TopArticles/>
+          </Suspense>
+
           <div className="text-center mt-4">
             <Link href={'/articles'}>
               <Button className="rounded-full

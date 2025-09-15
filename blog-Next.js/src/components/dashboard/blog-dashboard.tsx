@@ -5,8 +5,12 @@ import { Clock, FileText, MessageCircle, PlusCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import RecentArticles from './recent-articles'
 import { prisma } from '@/lib/prisma'
+import { Prisma  , } from '@prisma/client'
+
+
 
 const BlogDashboard = async() => {
+
   const [articles , totalComment] = await Promise.all([
     prisma.articles.findMany({
       orderBy:{
@@ -23,8 +27,9 @@ const BlogDashboard = async() => {
         }
       }
     }),
-    prisma.comment.count()
+    await prisma.comment.count()
   ])
+  // console.log("articles = " , articles)
 
   return (
     <main className='flex-1 p-4 md:p-8'>
@@ -61,7 +66,7 @@ const BlogDashboard = async() => {
         <Card className=''>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
             <CardTitle className=' text-sm '>
-              {totalComment || 10}
+              totalComment
              
             </CardTitle>
             <MessageCircle/> 
@@ -69,7 +74,7 @@ const BlogDashboard = async() => {
           </CardHeader>
 
           <CardContent>
-            <div className='text-2xl font-bold'> 3 
+            <div className='text-2xl font-bold'> {totalComment}
             <p className='text-sm text-muted-foreground mt-1'>12 awating in modration</p>
             </div>
           </CardContent>

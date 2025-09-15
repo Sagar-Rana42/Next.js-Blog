@@ -1,25 +1,33 @@
 "use client"
-import React, { FormEvent, startTransition, useActionState, useState } from 'react'
+
+import React, { FC, FormEvent, startTransition, useActionState, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
-import dynamic from 'next/dynamic'
+import ReactQuill from 'react-quill-new'
+import "react-quill-new/dist/quill.snow.css";
 import { Button } from '../ui/button'
-import 'react-quill-new/dist/quill.snow.css'
-import { createArticle } from '@/actions/create-article'
 import { Loader2 } from 'lucide-react'
+import type { Articles } from '@/generated/prisma'
+import Image from 'next/image'
+// import { createArticle } from '@/actions/create-article'
+import { editArticle } from '@/actions/edit-article'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
-const ReactQuill = dynamic(()=>import("react-quill-new") , {ssr:false})
 
+type articleParam  = {
+    params:Promise<{id:string}>
+}
 
-const CreateArticlePage = () => {
+type articleType = {
+    article:Articles,
+}
+
+const EditArticlePage:React.FC<articleType> = ({article }) => {
     const router = useRouter();
-    const [content , setContent] = useState<string>("")
-    const [formState , action , isPending] = useActionState(createArticle , {errors:{}});
-    // formState : - data jo action se return karega
-    // action(name)  jo action perform karega 
-    // isPending : complete or not
+    const [formState , action , isPending] = useActionState(editArticle.bind(null , article.id) , {errors:{}});
+    const [content , setContent] = useState<string>(article?.content);
 
     const handleSubmit = (e : FormEvent<HTMLFormElement>)=>{
         e.preventDefault();
@@ -33,6 +41,7 @@ const CreateArticlePage = () => {
         })
     }
     
+        
   return (
     <div className='max-w-4xl mx-auto p-6'>
         <Card>
@@ -42,9 +51,10 @@ const CreateArticlePage = () => {
             <CardContent>
                 <form className='space-y-6' onSubmit={handleSubmit}>
                     <div className='space-y-2'>
-                        <Input 
+                        <Input
                          type='text'
                          name='title'
+                         defaultValue={article?.title}
                          placeholder='Enter a article title'
                         />
                         {formState.errors.title && <span className='text-red-600 text-sm'>{formState.errors.title}</span> }
@@ -52,7 +62,7 @@ const CreateArticlePage = () => {
 
                     <div className='space-y-2'>
                         <Label htmlFor='category'>Category</Label>
-                        <select name="category" id="category" className='flex h-10 w-full border rounded-md'>
+                        <select name="category" id="category" defaultValue={article?.category} className='flex h-10 w-full border rounded-md'>
                             <option value="" >Select</option>
                             <option value="technology" >Technology</option>
                             <option value="programming" >Programming</option>
@@ -70,6 +80,17 @@ const CreateArticlePage = () => {
                           name='featuredImage'
                           accept='image/*'
                         />
+                        {
+                            article.featuredImage && 
+                            <div>
+                                <img
+                                    src={article.featuredImage}
+                                    alt='Image'
+                                    className='h-52 w-42 object-cover rounded-sm'
+                                />
+                            </div>
+                        }
+                        
 
                     </div>
 
@@ -78,6 +99,7 @@ const CreateArticlePage = () => {
                         <ReactQuill
                             theme="snow"
                             value={content}
+                            
                             onChange={setContent}
                             // modules={modules}
                         />
@@ -85,10 +107,13 @@ const CreateArticlePage = () => {
                     </div>
 
                     <div className='flex justify-end gap-4'>
-                        <Button variant={"outline"} onClick={()=>router.push('/dashboard')}>Cancel</Button>
+                        
+                        <Link href={'/dashboard'}>
+                        <Button variant={"outline"}>Cancel</Button></Link>
+                        {/* <Link  className='text-center text-red-300 ' href={'/dashboard'}>Cancel</Link> */}
                         <Button disabled={isPending} type="submit" > 
                             {
-                                isPending ? (<Loader2 className='animate-spin'/>) : ("Publish")
+                                isPending ? (<Loader2 className='animate-spin'/>) : ("edit article")
                             }
                         </Button>
                     </div>
@@ -99,18 +124,6 @@ const CreateArticlePage = () => {
         </Card>
     </div>
   )
-
 }
 
-export default CreateArticlePage
-
-// const modules = {
-//   toolbar: [
-//     [{ header: [1, 2, false] }],
-//     ["bold", "italic", "underline", "strike"],
-//     [{ list: "ordered" }, { list: "bullet" }],
-//     ["blockquote", "code-block"], 
-//     ["link", "image"],
-//     ["clean"],
-//   ],
-// };
+export default EditArticlePage
